@@ -110,6 +110,27 @@ _Background (class 0) is black (0,0,0)._
 
 ![Per-model frame counts within asteroid.](figures/subtypes_asteroid.png)
 
+## Comparison with existing space datasets
+
+Public spacecraft-vision datasets are overwhelmingly perspective (pinhole), and most target a single spacecraft for pose estimation (SPEED, SPEED+, URSO, SwissCube); SPARK is the main multi-class recognition set. This dataset differs primarily in projection — it is equirectangular 360°, intended for omnidirectional sensors — and in breadth, combining semantic segmentation, depth, classification, and 6-DoF pose over many categories drawn from roughly two hundred distinct NASA models. Unlike SPEED and SPEED+, it contains no real or hardware-in-the-loop imagery; it is purely synthetic, which is its main trade-off against those benchmarks.
+
+| Dataset | Year | Group (authors) | Projection | Targets / classes | Images | Ground truth | Task |
+|---|---|---|---|---|---|---|---|
+| SPEED | 2019 | Stanford SLAB & ESA ACT (Sharma, Park, D'Amico) | Perspective | 1 (Tango) | 15,300 (15,000 synthetic + 300 real) | RGB, pose | Pose estimation |
+| SPEED+ | 2021 | Stanford SLAB & ESA ACT (Park, Märtens, Lecuyer, Izzo, D'Amico) | Perspective | 1 (Tango) | 59,960 synthetic + 9,531 HIL real | RGB, pose, masks | Pose / domain gap |
+| URSO | 2020 | Surrey Space Centre (Proença, Gao) | Perspective | 2 (Soyuz, Dragon) | ~15,000 (5,000 per set) | RGB, depth, pose | Pose estimation |
+| SwissCube | 2021 | EPFL CVLab (Hu, Speierer, Jakob, Fua, Salzmann) | Perspective | 1 (SwissCube) | 50,000 (40k/10k) | RGB, 6-DoF pose | Wide-depth-range 6D pose |
+| SPARK | 2021 | Univ. of Luxembourg SnT & LMO (Musallam et al.) | Perspective | 11 classes (10 spacecraft + 1 debris) | ~150,000 RGB + 150,000 depth | RGB, depth, class, bbox | Classification & detection |
+| **This dataset** | 2026 | — | Equirectangular 360° | 13 classes (~208 NASA models) | 49,998 | RGB, semantic mask, depth (EXR), class, 6-DoF pose | Segmentation, depth, classification, pose |
+
+**References**
+
+- S. Sharma, T. H. Park, S. D'Amico. Spacecraft Pose Estimation Dataset (SPEED). Stanford Digital Repository / ESA Kelvins SPEC2019, 2019.
+- T. H. Park, M. Märtens, G. Lecuyer, D. Izzo, S. D'Amico. SPEED+: Next-Generation Dataset for Spacecraft Pose Estimation across Domain Gap. IEEE Aerospace Conference, 2022.
+- P. F. Proença, Y. Gao. Deep Learning for Spacecraft Pose Estimation from Photorealistic Rendering (URSO). IEEE ICRA, 2020.
+- Y. Hu, S. Speierer, W. Jakob, P. Fua, M. Salzmann. Wide-Depth-Range 6D Object Pose Estimation in Space (SwissCube). IEEE/CVF CVPR, 2021.
+- M. A. Musallam, K. Al Ismaeil, O. Oyedotun, M. D. Perez, M. Poucet, D. Aouada. SPARK: SPAcecraft Recognition leveraging Knowledge of Space Environment. IEEE ICIP Grand Challenge, 2021.
+
 ## Known limitations
 
 - Thin model diversity in a few classes (e.g. comm_satellite, space_station): frame counts are balanced, but the number of distinct underlying models is small, so shape variety is limited there. Cubesats are supplemented procedurally.
