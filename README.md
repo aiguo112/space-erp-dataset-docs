@@ -133,6 +133,63 @@ Public spacecraft-vision datasets are overwhelmingly perspective (pinhole), and 
 - M. A. Musallam, K. Al Ismaeil, O. Oyedotun, M. D. Perez, M. Poucet, D. Aouada. SPARK: SPAcecraft Recognition leveraging Knowledge of Space Environment. IEEE ICIP Grand Challenge, 2021.
 - Y. Liu, C. Bian, H. Nie, S. Chen, Z. Yang. A Large-Scale Synthetic Benchmark Dataset for Non-Cooperative Space Target Perception (NCSTP). Scientific Data 12, 1780, 2025. DOI: 10.1038/s41597-025-06056-8.
 
+## Baseline results
+
+Reference baselines on the dataset's own train/val/test split (≈80/10/10, stratified by class), using **standard models — not ERP-specific architectures** — to establish where the dataset stands and to leave clear headroom. Trained on a single RTX 3060. Inputs are treated as ordinary 2-D images; the ERP-valid horizontal-roll augmentation (a longitude rotation of the sphere) is used, while vertical flips are avoided since they would break the poles.
+
+### Classification (13 classes)
+
+ResNet-50, ImageNet-pretrained, fine-tuned. Test top-1 accuracy:
+
+| Input | Epochs | Test top-1 |
+|---|--:|--:|
+| 256×512 | 8 | 86.4% |
+| 384×768 | 12 | **88.1%** |
+
+Per-class accuracy (384×768 model):
+
+| Class | Acc | Class | Acc |
+|---|--:|---|--:|
+| planet | 1.000 | comm_satellite | 0.901 |
+| moon | 1.000 | space_station | 0.883 |
+| asteroid | 1.000 | astronaut_eva | 0.878 |
+| cubesat | 0.912 | rocket_launch_vehicle | 0.873 |
+| solar_heliophysics | 0.847 | mars_mission | 0.839 |
+| deep_space_probe | 0.797 | earth_obs_satellite | 0.766 |
+| space_telescope | 0.758 | | |
+
+![Classification training curves (loss and accuracy)](figures/cls_curves.png)
+
+![Classification confusion matrix (row-normalized)](figures/cls_confusion_matrix.png)
+
+Visually distinct classes (celestial bodies, cubesat, comm) are essentially solved. The function-defined satellite classes — space_telescope, earth_obs_satellite, deep_space_probe, solar_heliophysics — form a confusion cluster because they share a "bus + solar panels + instrument" appearance. Higher input resolution improved precisely these classes (~+3 points each), confirming small-object detail as a contributing factor.
+
+### Semantic segmentation (14 classes: background + 13)
+
+U-Net with an ImageNet-pretrained ResNet-34 encoder, trained at native 512×1024 for 20 epochs with class-weighted cross-entropy + Dice loss to handle the background/planet pixel imbalance.
+
+**Test mIoU 0.628 · foreground mIoU 0.600**
+
+Per-class IoU:
+
+| Class | IoU | Class | IoU |
+|---|--:|---|--:|
+| background | 0.995 | comm_satellite | 0.657 |
+| asteroid | 0.830 | astronaut_eva | 0.607 |
+| planet | 0.828 | space_station | 0.581 |
+| moon | 0.814 | rocket_launch_vehicle | 0.555 |
+| cubesat | 0.769 | mars_mission | 0.542 |
+| deep_space_probe | 0.453 | solar_heliophysics | 0.422 |
+| earth_obs_satellite | 0.393 | space_telescope | 0.345 |
+
+![Segmentation training curves (loss and val mIoU)](figures/seg_curves.png)
+
+![Segmentation predictions — image / ground truth / prediction](figures/seg_overlays.png)
+
+Large or distinctly shaped objects segment well; the lowest IoU again falls on space_telescope and earth_obs_satellite — the same look-alike cluster, so the dataset's difficulty is consistent across tasks. The unlit limbs of planets and moons are sometimes under-segmented, since they are near-black and blend into space.
+
+_Baselines use standard 2-D models. Distortion-aware (spherical/equirectangular) architectures, the small-object regime, and the look-alike satellite cluster are open directions for improvement; depth and 6-DoF pose remain to be benchmarked._
+
 ## Known limitations
 
 - Thin model diversity in a few classes (e.g. comm_satellite, space_station): frame counts are balanced, but the number of distinct underlying models is small, so shape variety is limited there. Cubesats are supplemented procedurally.
