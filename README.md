@@ -200,7 +200,15 @@ The model recovers genuine relative 3-D structure rather than flat blobs: sphere
 
 ![Depth predictions — image / GT depth / predicted depth (scale-aligned)](figures/depth_overlays.png)
 
-_Baselines use standard 2-D models. Distortion-aware (spherical/equirectangular) architectures, the small-object regime, and the look-alike satellite cluster are open directions for improvement; **6-DoF pose remains to be benchmarked**._
+### 6-DoF pose: bearing, range, and an open attitude challenge
+
+The dataset provides full 6-DoF pose ground truth per object (orientation quaternion + spherical position). The three components differ sharply in difficulty:
+
+- **Bearing (azimuth/elevation, 2 DoF)** is directly observable — in an equirectangular panorama the object's image position *is* its bearing, so it is recovered essentially for free.
+- **Range (distance, 1 DoF)** is scale-ambiguous for isolated objects (the same limitation characterized in the depth task) and is not recoverable in absolute terms from a single view.
+- **Attitude (orientation, 3 DoF)** is an **open challenge**. A standard baseline — ResNet-50 regressing the orientation quaternion from a mask-cropped, aspect-preserved object patch, with bearing supplied as auxiliary input, trained with a double-cover quaternion loss — does not exceed chance (test median geodesic error ≈ 130°, acc@30° ≈ 0.01; chance ≈ 120°). Training loss falls while validation stays at chance: the model memorizes training examples but extracts no generalizable orientation signal. We attribute this to small object scale, pervasive symmetry and feature-poverty, and high intra-class shape diversity (208 models). Single-view omnidirectional attitude estimation thus remains an open problem this dataset enables future work to tackle.
+
+_Baselines use standard 2-D models. Distortion-aware (spherical/equirectangular) architectures, the small-object regime, and the look-alike satellite cluster are open directions for improvement; **single-view attitude estimation remains an open challenge**._
 
 ## Known limitations
 
