@@ -188,7 +188,19 @@ Per-class IoU:
 
 Large or distinctly shaped objects segment well; the lowest IoU again falls on space_telescope and earth_obs_satellite — the same look-alike cluster, so the dataset's difficulty is consistent across tasks. The unlit limbs of planets and moons are sometimes under-segmented, since they are near-black and blend into space.
 
-_Baselines use standard 2-D models. Distortion-aware (spherical/equirectangular) architectures, the small-object regime, and the look-alike satellite cluster are open directions for improvement; depth and 6-DoF pose remain to be benchmarked._
+### Monocular depth estimation (scale-invariant)
+
+Absolute metric depth is ill-posed for isolated objects in space (no scale cues), so depth is benchmarked **scale-invariantly**: a U-Net with an ImageNet-pretrained ResNet-34 encoder predicts log-depth, trained with a scale-invariant (SILog) loss. The "infinite" background is masked out, and metrics are computed on foreground (object) pixels after per-image log-scale alignment — standard practice for monocular depth (Eigen et al., 2014; MiDaS / DPT).
+
+**Test AbsRel 0.067 · δ<1.25 0.957**  _(RMSE ≈ 50 scene units, but RMSE is dominated by far backdrop pixels and is the less reliable metric here.)_
+
+The model recovers genuine relative 3-D structure rather than flat blobs: spheres (planets, moons) show the correct centre-near / limb-far radial gradient, and elongated craft show the along-axis gradient induced by their orientation. Depth is the strongest task by relative accuracy and converges within a few epochs — relative depth from shading and silhouette is highly learnable here, even though absolute depth is not. Large textured bodies occasionally leak surface texture into the predicted depth, and the smallest craft give correct silhouettes with little internal gradient.
+
+![Depth training curves (SILog loss and validation metrics)](figures/depth_curves.png)
+
+![Depth predictions — image / GT depth / predicted depth (scale-aligned)](figures/depth_overlays.png)
+
+_Baselines use standard 2-D models. Distortion-aware (spherical/equirectangular) architectures, the small-object regime, and the look-alike satellite cluster are open directions for improvement; **6-DoF pose remains to be benchmarked**._
 
 ## Known limitations
 
